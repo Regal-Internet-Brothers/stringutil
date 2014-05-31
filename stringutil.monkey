@@ -19,6 +19,9 @@ Const ColonSlash:String = ":/"
 Const BackSlash:String = "\"
 Const DotBackSlash:String = ".\"
 Const ColonBackSlash:String = ":\"
+Const SingleQuote:String = "'"
+
+Const An:String = "an"
 
 ' Global variable(s):
 Global Quote:String = String.FromChar(QuoteChar)
@@ -37,8 +40,8 @@ End
 Function AOrAn:String(Input:String)
 	' Local variable(s):
 	Local LI:= Input.ToLower()
-	Local An:String = "an"
 	
+	' Check for English vowels:
 	If (LI.StartsWith("a")) Then Return An
 	If (LI.StartsWith("e")) Then Return An
 	If (LI.StartsWith("i")) Then Return An
@@ -47,4 +50,23 @@ Function AOrAn:String(Input:String)
 	
 	' Return the default response.
 	Return "a"
+End
+
+Function BoolToString:String(In:Bool)
+	If (In) Then Return "True"
+	
+	Return "False"
+End
+
+Function ShortenedFloat:String(F:Float, Precision:Int=1)
+	' Local variable(s):
+	Local S_F:= String(F)
+	Local PrecisionStr:String = Right(S_F, Len(S_F) - Instr(S_F, "."))
+	
+	If (Precision < 1) Then
+		PrecisionStr = "0"
+		Precision = 1
+	Endif
+	
+	Return Left(S_F, Instr(S_F, ".")) + Left(PrecisionStr, Precision)
 End
