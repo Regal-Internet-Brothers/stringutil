@@ -12,6 +12,7 @@ Const QuoteChar:Int = 34
 
 ' Character strings:
 Const Comma:String = ","
+Const Dot:String = "."
 Const Space:String = " "
 Const Slash:String = "/"
 Const DotSlash:String = "./"
