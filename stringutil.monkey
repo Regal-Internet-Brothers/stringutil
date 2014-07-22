@@ -3,7 +3,7 @@ Strict
 Public
 
 ' Imports:
-'Import sizeof
+Import retrostrings
 
 ' Constant variable(s):
 
@@ -11,7 +11,10 @@ Public
 Const QuoteChar:Int = 34
 
 ' Character strings:
+Const Quote:String = "~q"
 Const Comma:String = ","
+Const LeftBracket:String = "["
+Const RightBracket:String = "]"
 Const Dot:String = "."
 Const Space:String = " "
 Const Slash:String = "/"
@@ -25,7 +28,7 @@ Const SingleQuote:String = "'"
 Const An:String = "an"
 
 ' Global variable(s):
-Global Quote:String = String.FromChar(QuoteChar)
+' Nothing so far.
 
 ' Functions:
 Function InQuotes:String(Input:String, QChar:Int=QuoteChar)
