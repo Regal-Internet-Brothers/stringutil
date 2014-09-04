@@ -10,11 +10,15 @@ Strict
 
 Public
 
+' Preprocessor related:
+#STRING_UTIL_IMPLEMENTED = True
+
 ' Imports:
 Import retrostrings
 
 ' Constant variable(s):
 Const STRING_INVALID_LOCATION:Int		= -1
+
 Const STRING_SEARCH_OUTPUT_SIZE:Int		= 2
 
 ' String-search output-indexes (See 'FindInString' and 'FindInStrings' for details):
@@ -98,6 +102,7 @@ End
 Function CleanString:String(Input:String, ReplaceStrs:String[]=["~n", "~t"])
 	For Local RS:= Eachin ReplaceStrs
 		If (RS.Length() > 0) Then
+			' Replace each token with nothing.
 			Input = Input.Replace(RS, "")
 		Endif
 	Next
