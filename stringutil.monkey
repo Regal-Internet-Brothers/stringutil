@@ -4,6 +4,8 @@
 			* Though I do use the formal plural forms of 'suffix' and 'prefix' in this module,
 			I prefer the non-standard forms ('Prefices' and 'Suffices'),
 			so you may see those two words creep in on occasion.
+	TODO:
+		* Add the option to use custom lengths and offsets for 'FindInString' and 'FindInStrings'.
 #End
 
 Strict
@@ -11,10 +13,29 @@ Strict
 Public
 
 ' Preprocessor related:
-#STRING_UTIL_IMPLEMENTED = True
+' Enabling this will ensure that you won't have any compatibility issues.
+#STRINGUTIL_MAXIMIZE_COMPATIBILITY = True ' False
+
+#STRINGUTIL_IMPLEMENTED = True
+
+#If STRINGUTIL_MAXIMIZE_COMPATIBILITY
+	#STRING_UTIL_IMPLEMENTED = STRINGUTIL_IMPLEMENTED
+	#STRINGUTIL_IMPORT_RETROSTRINGS = True
+#Else
+	#STRINGUTIL_IMPORT_RETROSTRINGS = False
+#End
+
+' If this is enabled commands like 'CleanString' will do extra work ensuring safety. (Partially implemented)
+#STRINGUTIL_SAFE = True
+
+' If disabled, a potentially faster, but overall less
+' reliable method will be used to shorten floating-point strings.
+#STRINGUTIL_ALTERNATE_FLOAT_SHORTEN = False
 
 ' Imports:
-Import retrostrings
+#If STRINGUTIL_IMPORT_RETROSTRINGS
+	Import retrostrings
+#End
 
 ' Constant variable(s):
 Const STRING_INVALID_LOCATION:Int		= -1
@@ -22,8 +43,13 @@ Const STRING_INVALID_LOCATION:Int		= -1
 Const STRING_SEARCH_OUTPUT_SIZE:Int		= 2
 
 ' String-search output-indexes (See 'FindInString' and 'FindInStrings' for details):
-Const STRING_SEARCH_ARRAY:Int			= 0
-Const STRING_SEARCH_STR_POS:Int			= 1
+Const STRING_SEARCH_ARRAY_POSITION:Int			= 0
+Const STRING_SEARCH_STR_POSITION:Int			= 1
+
+#If STRINGUTIL_MAXIMIZE_COMPATIBILITY
+	Const STRING_SEARCH_ARRAY:= STRING_SEARCH_ARRAY_POSITION
+	Const STRING_SEARCH_STR_POS:= STRING_SEARCH_STR_POSITION
+#End
 
 ' Character codes:
 Const QuoteChar:Int = 34
@@ -51,7 +77,11 @@ Const SingleQuote:String = "'"
 ' Nothing so far.
 
 ' Functions (Public):
-Function InQuotes:String(Input:String, QChar:Int=QuoteChar)
+Function InQuotes:String(Input:String)
+	Return Quote + Input + Quote
+End
+
+Function InQuotes:String(Input:String, QChar:Int)
 	' Local variable(s):
 	
 	' Get the quote-string from the character specified.
@@ -61,11 +91,18 @@ Function InQuotes:String(Input:String, QChar:Int=QuoteChar)
 	Return Q + Input + Q
 End
 
-' This command will get things right most of the time,
-' but it doesn't have a dictionary, so it's not perfect about vowels.
+#Rem
+	This command will get things right most of the time,
+	but it doesn't have a dictionary, so it's not perfect.
+	
+	This really depends on how the word is pronounced,
+	but at least vowels will always be properly handled.
+#End
+
 Function AOrAn:String(Input:String)
 	' Constant variable(s):
 	Const An:String = "an"
+	Const A:String = "a"
 	
 	' Local variable(s):
 	Local LI:= Input.ToLower()
@@ -78,34 +115,61 @@ Function AOrAn:String(Input:String)
 	If (LI.StartsWith("u")) Then Return An
 	
 	' Return the default response.
-	Return "a"
+	Return A
 End
 
 Function BoolToString:String(In:Bool)
-	If (In) Then Return "True"
+	If (In) Then
+		Return "True"
+	Endif
 	
 	Return "False"
 End
 
+' If 'STRINGUTIL_SAFE' is disabled, and the 'Precision' argument
+' of this command is less than one, integer conversion will be used.
 Function ShortenedFloat:String(F:Float, Precision:Int=1)
-	' Local variable(s):
-	Local S_F:= String(F)
-	Local PrecisionStr:String = Right(S_F, Len(S_F) - Instr(S_F, "."))
+	#If Not STRINGUTIL_SAFE
+		If (Precision < 1) Then
+			Return String(Int(F))
+		Endif
+	#End
 	
-	If (Precision < 1) Then
-		PrecisionStr = "0"
-		Precision = 1
-	Endif
-	
-	Return Left(S_F, Instr(S_F, ".")) + Left(PrecisionStr, Precision)
+	#If Not STRINGUTIL_ALTERNATE_FLOAT_SHORTEN
+		' Local variable(s):
+		Local S_F:= String(F)
+		
+		#If STRINGUTIL_SAFE
+			If (Precision < 1) Then
+				Return S_F[..S_F.Find(Dot)]
+			Endif
+		#End
+		
+		Return S_F[..S_F.Find(Dot)+1+Precision]
+	#Else
+		#If STRINGUTIL_SAFE
+			' This is done so we don't divide by zero.
+			Precision = Max(Precision, 1)
+		#End
+		
+		Local X:= Float(Pow(10, Precision))
+		
+		F *= X
+		
+		Return String(Int(F + (Sgn(F) * 0.5)) / X)
+	#End
 End
 
-Function CleanString:String(Input:String, ReplaceStrs:String[]=["~n", "~t"])
+Function CleanString:String(Input:String, ReplaceStrs:String[]=["~n", "~r", "~t"]) ' [..., ~q"]
 	For Local RS:= Eachin ReplaceStrs
-		If (RS.Length() > 0) Then
-			' Replace each token with nothing.
-			Input = Input.Replace(RS, "")
-		Endif
+		#If STRINGUTIL_SAFE
+			If (RS.Length() > 0) Then
+		#End
+				' Replace each token with nothing.
+				Input = Input.Replace(RS, "")
+		#If STRINGUTIL_SAFE
+			Endif
+		#End
 	Next
 	
 	' Return the newly processed input-string and treat it as an output.
@@ -214,7 +278,7 @@ End
 Function FindInString:Int(S:String, Keys:String[], KeyPrefix:String="", KeySuffix:String="", ExitOnMatch:Bool=False)
 	Local Position:Int = STRING_INVALID_LOCATION
 	
-	For Local I:Int = 0 Until Keys.Length()
+	For Local I:= 0 Until Keys.Length()
 		Local P:= S.Find(KeyPrefix + Keys[I] + KeySuffix)
 		
 		If (P > Position) Then
@@ -230,7 +294,7 @@ Function FindInString:Int(S:String, Keys:String[], KeyPrefix:String="", KeySuffi
 End
 
 Function FindInStrings:Int[](SA:String[], Keys:String[], KeyPrefix:String="", KeySuffix:String="", Output:Int[]=[])
-	For Local I:Int = 0 Until SA.Length()
+	For Local I:= 0 Until SA.Length()
 		Local FindResponse:= FindInString(SA[I], Keys, KeyPrefix, KeySuffix)
 		
 		If (FindResponse <> STRING_INVALID_LOCATION) Then
@@ -238,8 +302,8 @@ Function FindInStrings:Int[](SA:String[], Keys:String[], KeyPrefix:String="", Ke
 				Output = New Int[STRING_SEARCH_OUTPUT_SIZE]
 			Endif
 			
-			Output[STRING_SEARCH_STR_POS] = FindResponse
-			Output[STRING_SEARCH_ARRAY] = I
+			Output[STRING_SEARCH_STR_POSITION] = FindResponse
+			Output[STRING_SEARCH_ARRAY_POSITION] = I
 			
 			' Return the output-array.
 			Return Output ' [I, FindResponse]
@@ -255,7 +319,7 @@ Function InvalidStringSearch:Bool(Response:Int)
 End
 
 Function InvalidStringSearch:Bool(Response:Int[])
-	Return (Response.Length() = 0 Or Response[STRING_SEARCH_ARRAY] = STRING_INVALID_LOCATION Or Response[STRING_SEARCH_STR_POS] = STRING_INVALID_LOCATION)
+	Return (Response.Length() = 0 Or Response[STRING_SEARCH_ARRAY_POSITION] = STRING_INVALID_LOCATION Or Response[STRING_SEARCH_STR_POSITION] = STRING_INVALID_LOCATION)
 End
 
 ' Functions (Private):
