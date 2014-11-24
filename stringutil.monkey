@@ -13,10 +13,10 @@ Strict
 Public
 
 ' Preprocessor related:
+#STRINGUTIL_IMPLEMENTED = True
+
 ' Enabling this will ensure that you won't have any compatibility issues.
 #STRINGUTIL_MAXIMIZE_COMPATIBILITY = True ' False
-
-#STRINGUTIL_IMPLEMENTED = True
 
 #If STRINGUTIL_MAXIMIZE_COMPATIBILITY
 	#STRING_UTIL_IMPLEMENTED = STRINGUTIL_IMPLEMENTED
@@ -31,6 +31,24 @@ Public
 ' If disabled, a potentially faster, but overall less
 ' reliable method will be used to shorten floating-point strings.
 #STRINGUTIL_ALTERNATE_FLOAT_SHORTEN = False
+
+#Rem
+	This allows you to toggle the use of enumerators in some situations.
+	This is mainly for reading from arrays; this could provide a
+	small performance boost on some targets.
+	
+	This preprocessor variable is a suggestion/guideline, not a rule.
+	Not all routines support this feature.
+#End
+
+#If TARGET = "android" ' And Not STRINGUTIL_MAXIMIZE_COMPATIBILITY
+	' Enumerators are not preferred on Android-based targets
+	' due to the way they are commonly generated.
+	#STRINGUTIL_PREFER_ENUMERATORS = False
+#Else
+	' On other targets, we shouldn't have any issues.
+	#STRINGUTIL_PREFER_ENUMERATORS = True
+#End
 
 ' Imports:
 #If STRINGUTIL_IMPORT_RETROSTRINGS
@@ -314,19 +332,6 @@ Function FindInStrings:Int[](SA:String[], Keys:String[], KeyPrefix:String="", Ke
 	Return []
 End
 
-Function InvalidStringSearch:Bool(Response:Int)
-	Return (Response = STRING_INVALID_LOCATION) ' Alternate: (Response <= -1)
-End
-
-Function InvalidStringSearch:Bool(Response:Int[])
-	Return (Response.Length() = 0 Or Response[STRING_SEARCH_ARRAY_POSITION] = STRING_INVALID_LOCATION Or Response[STRING_SEARCH_STR_POSITION] = STRING_INVALID_LOCATION)
-End
-
-' Functions (Private):
-Private
-
-' Internal utility functions:
-
 ' These commands are here so you can pass in arguments for prefixes and suffixes applied as blank,
 ' without missing the entire point of calling the search-functions to begin with:
 Function FindInStrings_Prefixes:Int[](SA:String[], Keys:String[], KeyPrefixes:String[], KeySuffix:String, Output:Int[]=[])
@@ -345,6 +350,7 @@ Function FindInStrings_Prefixes:Int[](SA:String[], Keys:String[], KeyPrefixes:St
 		Return FindInStrings(SA, Keys, "", KeySuffix, Output)
 	Endif
 	
+	' Return an empty array.
 	Return []
 End
 
@@ -364,6 +370,7 @@ Function FindInStrings_Suffixes:Int[](SA:String[], Keys:String[], KeyPrefix:Stri
 		Return FindInStrings(SA, Keys, KeyPrefix, "", Output)
 	Endif
 	
+	' Return an empty array.
 	Return []
 End
 
@@ -418,5 +425,68 @@ Function FindString_Prefixes:Int(S:String, Keys:String[], KeyPrefixes:String[], 
 	
 	Return Position
 End
+
+Function StringStartsWith:Bool(S:String, Token:String)
+	Return S.StartsWith(Token)
+End
+
+Function StringStartsWith:Bool(S:String, Tokens:String[])
+	#If STRINGUTIL_PREFER_ENUMERATORS
+		For Local Token:= Eachin Tokens
+			'If (StringStartsWith(S, Token)) Then
+			If (S.StartsWith(Token)) Then
+				Return True
+			Endif
+		Next
+	#Else
+		For Local Index:= 0 Until Tokens.Length()
+			'If (StringStartsWith(S, Tokens[Index])) Then
+			If (S.StartsWith(Tokens[Index])) Then
+				Return True
+			Endif
+		Next
+	#End
+	
+	' Return the default response.
+	Return False
+End
+
+Function StringEndsWith:Bool(S:String, Token:String)
+	Return S.EndsWith(Token)
+End
+
+Function StringEndsWith:Bool(S:String, Tokens:String[])
+	#If STRINGUTIL_PREFER_ENUMERATORS
+		For Local Token:= Eachin Tokens
+			'If (StringEndsWith(S, Token)) Then
+			If (S.EndsWith(Token)) Then
+				Return True
+			Endif
+		Next
+	#Else
+		For Local Index:= 0 Until Tokens.Length()
+			'If (StringEndsWith(S, Tokens[Index])) Then
+			If (S.EndsWith(Tokens[Index])) Then
+				Return True
+			Endif
+		Next
+	#End
+	
+	' Return the default response.
+	Return False
+End
+
+Function InvalidStringSearch:Bool(Response:Int)
+	Return (Response = STRING_INVALID_LOCATION) ' Alternate version: (Response <= -1)
+End
+
+Function InvalidStringSearch:Bool(Response:Int[])
+	Return (Response.Length() = 0 Or Response[STRING_SEARCH_ARRAY_POSITION] = STRING_INVALID_LOCATION Or Response[STRING_SEARCH_STR_POSITION] = STRING_INVALID_LOCATION)
+End
+
+' Functions (Private):
+Private
+
+' Nothing so far.
 
 Public
