@@ -451,6 +451,20 @@ Function StringStartsWith:Bool(S:String, Tokens:String[])
 	Return False
 End
 
+' This command will return the index in the 'Tokens' array where it found a match.
+' For a simple boolean check, just use the 'StringStartsWith' command.
+Function StringStartsWith_Exact:Int(S:String, Tokens:String[])
+	For Local Index:= 0 Until Tokens.Length()
+		'If (StringStartsWith(S, Tokens[Index])) Then
+		If (S.StartsWith(Tokens[Index])) Then
+			Return Index
+		Endif
+	Next
+	
+	' Return the default response.
+	Return STRING_INVALID_LOCATION
+End
+
 Function StringEndsWith:Bool(S:String, Token:String)
 	Return S.EndsWith(Token)
 End
@@ -476,6 +490,21 @@ Function StringEndsWith:Bool(S:String, Tokens:String[])
 	Return False
 End
 
+' This command will return the index in the 'Tokens' array where it found a match.
+' For a simple boolean check, just use the 'StringEndsWith' command.
+' This is effectively the same as the 'StringStartsWith_Exact' command.
+Function StringEndsWith_Exact:Int(S:String, Tokens:String[])
+	For Local Index:= 0 Until Tokens.Length()
+		'If (StringEndsWith(S, Tokens[Index])) Then
+		If (S.EndsWith(Tokens[Index])) Then
+			Return Index
+		Endif
+	Next
+	
+	' Return the default response.
+	Return STRING_INVALID_LOCATION
+End
+
 Function InvalidStringSearch:Bool(Response:Int)
 	Return (Response = STRING_INVALID_LOCATION) ' Alternate version: (Response <= -1)
 End
@@ -490,3 +519,48 @@ Private
 ' Nothing so far.
 
 Public
+
+' Classes:
+Class StringException Extends Throwable
+	' Constant variable(s):
+	Const ErrorTemplate:String = "{STRING ERORR}: "
+	Const Default_ErrorMessage:String = ErrorTemplate + "An unknown has occurred."
+	
+	' Constructor(s):
+	Method New(Message:String=Default_ErrorMessage)
+		Self.Message = Message
+	End
+	
+	' Methods:
+	' Nothing so far.
+	
+	' Properties:
+	Method ToString:String() Property
+		Return Message
+	End
+	
+	' Fields:
+	Field Message
+End
+
+Class StringContentException Extends StringException
+	' Constant variable(s):
+	Const ErrorSeparator:String = " :: "
+	
+	' Constructor(s):
+	Method New(Message:String=Default_ErrorMessage, Content:String="")
+		' Call the super-class's implementation.
+		Super.New(Message)
+		
+		' Assign the internal-string which caused the error.
+		Self.Content = Content
+	End
+	
+	' Properties:
+	Method ToString:String() Property
+		Return Super.ToString() + ErrorSeparator + Content
+	End
+	
+	' Fields:
+	Field Content:String
+End
