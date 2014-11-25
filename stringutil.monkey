@@ -540,7 +540,7 @@ Class StringException Extends Throwable
 	End
 	
 	' Fields:
-	Field Message
+	Field Message:String
 End
 
 Class StringContentException Extends StringException
