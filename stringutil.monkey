@@ -433,6 +433,10 @@ End
 Function StringStartsWith:Bool(S:String, Tokens:String[])
 	#If STRINGUTIL_PREFER_ENUMERATORS
 		For Local Token:= Eachin Tokens
+			If (Token.Length() = 0) Then
+				Continue
+			Endif
+			
 			'If (StringStartsWith(S, Token)) Then
 			If (S.StartsWith(Token)) Then
 				Return True
@@ -440,8 +444,14 @@ Function StringStartsWith:Bool(S:String, Tokens:String[])
 		Next
 	#Else
 		For Local Index:= 0 Until Tokens.Length()
-			'If (StringStartsWith(S, Tokens[Index])) Then
-			If (S.StartsWith(Tokens[Index])) Then
+			Local Token:= Tokens[Index]
+			
+			If (Token.Length() = 0) Then
+				Continue
+			Endif
+			
+			'If (StringStartsWith(S, Token)) Then
+			If (S.StartsWith(Token)) Then
 				Return True
 			Endif
 		Next
@@ -455,8 +465,14 @@ End
 ' For a simple boolean check, just use the 'StringStartsWith' command.
 Function StringStartsWith_Exact:Int(S:String, Tokens:String[])
 	For Local Index:= 0 Until Tokens.Length()
-		'If (StringStartsWith(S, Tokens[Index])) Then
-		If (S.StartsWith(Tokens[Index])) Then
+		Local Token:= Tokens[Index]
+		
+		If (Token.Length() = 0) Then
+			Continue
+		Endif
+		
+		'If (StringStartsWith(S, Token)) Then
+		If (S.StartsWith(Token)) Then
 			Return Index
 		Endif
 	Next
@@ -472,6 +488,10 @@ End
 Function StringEndsWith:Bool(S:String, Tokens:String[])
 	#If STRINGUTIL_PREFER_ENUMERATORS
 		For Local Token:= Eachin Tokens
+			If (Token.Length() = 0) Then
+				Continue
+			Endif
+			
 			'If (StringEndsWith(S, Token)) Then
 			If (S.EndsWith(Token)) Then
 				Return True
@@ -479,6 +499,10 @@ Function StringEndsWith:Bool(S:String, Tokens:String[])
 		Next
 	#Else
 		For Local Index:= 0 Until Tokens.Length()
+			If (Token.Length() = 0) Then
+				Continue
+			Endif
+			
 			'If (StringEndsWith(S, Tokens[Index])) Then
 			If (S.EndsWith(Tokens[Index])) Then
 				Return True
@@ -495,8 +519,14 @@ End
 ' This is effectively the same as the 'StringStartsWith_Exact' command.
 Function StringEndsWith_Exact:Int(S:String, Tokens:String[])
 	For Local Index:= 0 Until Tokens.Length()
-		'If (StringEndsWith(S, Tokens[Index])) Then
-		If (S.EndsWith(Tokens[Index])) Then
+		Local Token:= Tokens[Index]
+		
+		If (Token.Length() = 0) Then
+			Continue
+		Endif
+		
+		'If (StringEndsWith(S, Token)) Then
+		If (S.EndsWith(Token)) Then
 			Return Index
 		Endif
 	Next
