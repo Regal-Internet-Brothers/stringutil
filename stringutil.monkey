@@ -70,10 +70,13 @@ Const STRING_SEARCH_STR_POSITION:Int			= 1
 #End
 
 ' Character codes:
-Const QuoteChar:Int = 34
+Const QuoteChar:Int = 34 ' "
+Const AsteriskChar:Int = 42 ' *
+Const QuestionMarkChar:Int = 63 ' ?
 
 ' Character strings:
 Const Quote:String = "~q"
+Const Asterisk:String = "*"
 Const Comma:String = ","
 Const Colon:String = ":"
 Const Dash:String = "-"
@@ -236,7 +239,7 @@ Function FindInStrings:Int[](SA:String[], Keys:String[], KeyPrefixes:String[], K
 		Next
 	Else
 		' If nothing else, call the version without prefixes and suffixes.
-		Return FindInStrings(SA, Keys, "", "", Output)
+		Return FindInStrings(SA, Keys, Output)
 	Endif
 	
 	' If we get to this point, nothing could be found.
@@ -252,7 +255,7 @@ Function FindInString:Int(S:String, Keys:String[], KeyPrefixes:String[], KeySuff
 	Local KeySuffixes_Length:= KeySuffixes.Length()
 	
 	' This will represent the position we find the key at.
-	Local Position:Int = STRING_INVALID_LOCATION
+	Local Position:= STRING_INVALID_LOCATION
 	
 	' See what we can do with the input-arrays:
 	If (KeyPrefixes_Length > 0) Then
@@ -283,7 +286,7 @@ Function FindInString:Int(S:String, Keys:String[], KeyPrefixes:String[], KeySuff
 		Next
 	Else
 		' If we couldn't use the input arrays, we need to forget them, instead of just exiting.
-		Return FindInString(S, Keys, "", "", ExitOnMatch)
+		Return FindInString(S, Keys, ExitOnMatch)
 	Endif
 	
 	Return Position
@@ -293,8 +296,9 @@ Function FindInString:Int(S:String, Keys:String[], ExitOnMatch:Bool)
 	Return FindInString(S, Keys, "", "", ExitOnMatch)
 End
 
-Function FindInString:Int(S:String, Keys:String[], KeyPrefix:String="", KeySuffix:String="", ExitOnMatch:Bool=False)
-	Local Position:Int = STRING_INVALID_LOCATION
+Function FindInString:Int(S:String, Keys:String[], KeyPrefix:String, KeySuffix:String, ExitOnMatch:Bool=False)
+	' Local variable(s):
+	Local Position:= STRING_INVALID_LOCATION
 	
 	For Local I:= 0 Until Keys.Length()
 		Local P:= S.Find(KeyPrefix + Keys[I] + KeySuffix)
@@ -311,7 +315,47 @@ Function FindInString:Int(S:String, Keys:String[], KeyPrefix:String="", KeySuffi
 	Return Position
 End
 
-Function FindInStrings:Int[](SA:String[], Keys:String[], KeyPrefix:String="", KeySuffix:String="", Output:Int[]=[])
+Function FindInString:Int(S:String, Keys:String[], ExitOnMatch:Bool=False)
+	' Local variable(s):
+	Local Position:= STRING_INVALID_LOCATION
+	
+	For Local I:= 0 Until Keys.Length()
+		Local P:= S.Find(Keys[I])
+		
+		If (P > Position) Then
+			If (ExitOnMatch) Then
+				Return P
+			Endif
+			
+			Position = P
+		Endif
+	Next
+	
+	Return Position
+End
+
+Function FindInStrings:Int[](SA:String[], Keys:String[], Output:Int[]=[])
+	For Local I:= 0 Until SA.Length()
+		Local FindResponse:= FindInString(SA[I], Keys)
+		
+		If (FindResponse <> STRING_INVALID_LOCATION) Then
+			If (Output.Length() = 0) Then
+				Output = New Int[STRING_SEARCH_OUTPUT_SIZE]
+			Endif
+			
+			Output[STRING_SEARCH_STR_POSITION] = FindResponse
+			Output[STRING_SEARCH_ARRAY_POSITION] = I
+			
+			' Return the output-array.
+			Return Output ' [I, FindResponse]
+		Endif
+	Next
+	
+	' Return an empty array.
+	Return []
+End
+
+Function FindInStrings:Int[](SA:String[], Keys:String[], KeyPrefix:String, KeySuffix:String, Output:Int[]=[])
 	For Local I:= 0 Until SA.Length()
 		Local FindResponse:= FindInString(SA[I], Keys, KeyPrefix, KeySuffix)
 		
@@ -379,7 +423,7 @@ Function FindString_Suffixes:Int(S:String, Keys:String[], KeyPrefix:String, KeyS
 	Local KeySuffixes_Length:= KeySuffixes.Length()
 	
 	' This will represent the position we find the key at.
-	Local Position:Int = STRING_INVALID_LOCATION
+	Local Position:= STRING_INVALID_LOCATION
 	
 	If (KeySuffixes_Length > 0) Then
 		For Local KS_I:= 0 Until KeySuffixes_Length
@@ -405,7 +449,7 @@ Function FindString_Prefixes:Int(S:String, Keys:String[], KeyPrefixes:String[], 
 	Local KeyPrefixes_Length:= KeyPrefixes.Length()
 	
 	' This will represent the position we find the key at.
-	Local Position:Int = STRING_INVALID_LOCATION
+	Local Position:= STRING_INVALID_LOCATION
 	
 	If (KeyPrefixes_Length > 0) Then
 		For Local KP_I:= 0 Until KeyPrefixes_Length
@@ -541,6 +585,121 @@ End
 
 Function InvalidStringSearch:Bool(Response:Int[])
 	Return (Response.Length() = 0 Or Response[STRING_SEARCH_ARRAY_POSITION] = STRING_INVALID_LOCATION Or Response[STRING_SEARCH_STR_POSITION] = STRING_INVALID_LOCATION)
+End
+
+#Rem
+	This command is based on a function developed by Pharmhaus of the Monkey community.
+	That implementation was a non-recursive derivative of Vishal Chaudhary's C implementation,
+	presented on GeeksforGeeks.org (www.geeksforgeeks.org/wildcard-character-matching).
+	
+	Unlike Pharmhaus's implementation, however, this will treat
+	multi-character wild-card symbols as an undefined set of characters (Potentially none).
+	
+	This is similar to what is used by the Windows File Explorer's search routine.
+	
+	Basically, this will allow you to compare standard strings with
+	strings containing only part of the data, and see if the data is compatible.
+	
+	This is commonly used for search routines, most notably for file searches.
+	
+	The "_Position" arguments are used for offsetting the routine's "start-points",
+	and the "_Length" arguments specify the "end-points" plus one (The lengths of the strings).
+#End
+
+Function WildCard:Bool(WildCardString:String, ToMatch:String, WildCardString_Position:Int=0, ToMatch_Position:Int=0)
+	Return WildCard(WildCardString, ToMatch, WildCardString_Position, ToMatch_Position, WildCardString.Length(), ToMatch.Length())
+End
+
+Function WildCard:Bool(WildCardString:String, ToMatch:String, WildCardString_Position:Int, ToMatch_Position:Int, WildCardString_Length:Int, ToMatch_Length:Int)
+	' Constant variable(s):
+	Const WildCardChar_Multiple:= AsteriskChar ' 42
+	Const WildCardChar_Single:= QuestionMarkChar ' 63
+	
+	' Local variable(s):
+	Local WildCard_MultiCharSymbol_Position:Int = 0
+	
+	' Continue processing until 'WildCardString' and 'ToMatch' have been compared:
+	While (WildCardString_Position < WildCardString_Length)
+		' Check for the multi-character wild-card symbol:
+		If (WildCardString[WildCardString_Position] = WildCardChar_Multiple) Then
+			' Store the position of the current character, so we may
+			' jump back to it if our later structural assumptions are incorrect.
+			WildCard_MultiCharSymbol_Position = WildCardString_Position
+			
+			' Move past any extra multi-character wild-card symbols:
+			While (WildCardString_Position < WildCardString_Length And WildCardString[WildCardString_Position] = WildCardChar_Multiple)
+				WildCardString_Position += 1
+			Wend
+			
+			' If we're at the end of 'WildCardString', return 'True'.
+			' (We can safely assume the other string is fine):
+			If (WildCardString_Position = WildCardString_Length) Then
+				Return True
+			Endif
+			
+			' Skip any ignored characters (Single-character wild-cards).
+			' This does not apply to normal characters, however:
+			While (WildCardString_Position < WildCardString_Length And WildCardString[WildCardString_Position] = WildCardChar_Single)
+				WildCardString_Position += 1
+				ToMatch_Position += 1
+			Wend
+			
+			' If we ran over the limit, exit the main loop:
+			If (WildCardString_Position = WildCardString_Length) Then
+				Exit
+			Endif
+			
+			' Local variable(s):
+			
+			#Rem
+				Cache the current character of 'WildCardString', so we don't have to keep loading it.
+				On some targets, this could be an unneeded optimization, but for the sake
+				of keeping everything as fast as possible, I'm keeping this on the stack.
+				
+				It's not like this would hurt anything to begin with.
+			#End
+			
+			Local WildCardString_CurrentChar:= WildCardString[WildCardString_Position]
+			
+			' Move past any characters that are unique to 'ToMatch':
+			While (ToMatch_Position < ToMatch_Length And WildCardString_CurrentChar <> ToMatch[ToMatch_Position])
+				ToMatch_Position += 1
+			Wend
+		Elseif (ToMatch_Position = ToMatch_Length) Then
+			' We've made it to the end of 'ToMatch',
+			' exit this loop, and perform any final tasks.
+			Exit
+		Elseif ((WildCardString[WildCardString_Position] = WildCardChar_Single Or WildCardString[WildCardString_Position] = ToMatch[ToMatch_Position])) Then
+			#Rem
+				We've found either the single-character wild-card symbol,
+				or matching characters between the two strings,
+				move forward through both strings by one character:
+			#End
+			
+			WildCardString_Position += 1
+			ToMatch_Position += 1
+		Elseif (WildCardString_Position < WildCardString_Length) Then
+			#Rem
+				If this point was reached, we've made a mistake in pattern detection.
+				Basically, the current characters do not match,
+				unlike the previous characters we've detected.
+				
+				So, we need to move our position in 'WildCardString' back to where
+				we last found a multi-character wild-card symbol,
+				but the position in 'ToMatch' will stay the same.
+				This means that we won't get the same results we just had.
+			#End
+			
+			WildCardString_Position = WildCard_MultiCharSymbol_Position
+		Else
+			' If this point was reached, we already know that
+			' the two strings are not compatible, tell the user.
+			Return False
+		Endif
+	Wend
+	
+	' If nothing else, tell the user if we're at the end of both strings or not.
+	Return (WildCardString_Position = WildCardString_Length And ToMatch_Position = ToMatch_Length)
 End
 
 ' Functions (Private):
