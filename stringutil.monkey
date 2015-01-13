@@ -292,10 +292,6 @@ Function FindInString:Int(S:String, Keys:String[], KeyPrefixes:String[], KeySuff
 	Return Position
 End
 
-Function FindInString:Int(S:String, Keys:String[], ExitOnMatch:Bool)
-	Return FindInString(S, Keys, "", "", ExitOnMatch)
-End
-
 Function FindInString:Int(S:String, Keys:String[], KeyPrefix:String, KeySuffix:String, ExitOnMatch:Bool=False)
 	' Local variable(s):
 	Local Position:= STRING_INVALID_LOCATION
