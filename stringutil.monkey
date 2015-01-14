@@ -205,48 +205,6 @@ Function FindInString:Int[](SA:String[], Keys:String[], KeyPrefix:String="", Key
 End
 
 ' This command can take empty arrays for prefixes and/or suffixes if needed.
-Function FindInStrings:Int[](SA:String[], Keys:String[], KeyPrefixes:String[], KeySuffixes:String[]=[], Output:Int[]=[])
-	' Local variable(s):
-	
-	' Array length caches (Could be more optimal, but this will do):
-	Local KeyPrefixes_Length:= KeyPrefixes.Length()
-	Local KeySuffixes_Length:= KeySuffixes.Length()
-	
-	' See what we can do about the input-arrays:
-	If (KeyPrefixes_Length > 0) Then
-		' We have prefixes, so we need to send in the suffixes, and iterate through the prefixes:
-		For Local KP_I:= 0 Until KeyPrefixes_Length
-			' Get the data supplied from the suffix-loop.
-			Local Data:= FindInStrings_Suffixes(SA, Keys, KeyPrefixes[KP_I], KeySuffixes, Output)
-			
-			' If data was found, we can return it.
-			If (Data.Length() > 0) Then
-				' We're good, return the data supplied.
-				Return Data
-			Endif
-		Next
-	Elseif (KeySuffixes_Length > 0) Then
-		' We have suffixes, so we need to send in the prefixes, and iterate through the suffixes:
-		For Local KS_I:= 0 Until KeySuffixes_Length
-			' Get the data supplied from the prefix-loop.
-			Local Data:= FindInStrings_Prefixes(SA, Keys, KeyPrefixes, KeySuffixes[KS_I], Output)
-			
-			' If data was found, we can return it.
-			If (Data.Length() > 0) Then
-				' We're good, return the data supplied.
-				Return Data
-			Endif
-		Next
-	Else
-		' If nothing else, call the version without prefixes and suffixes.
-		Return FindInStrings(SA, Keys, Output)
-	Endif
-	
-	' If we get to this point, nothing could be found.
-	Return []
-End
-
-' This command can take empty arrays for prefixes and/or suffixes if needed.
 Function FindInString:Int(S:String, Keys:String[], KeyPrefixes:String[], KeySuffixes:String[]=[], ExitOnMatch:Bool=False)
 	' Local variable(s):
 	
@@ -328,6 +286,48 @@ Function FindInString:Int(S:String, Keys:String[], ExitOnMatch:Bool=False)
 	Next
 	
 	Return Position
+End
+
+' This command can take empty arrays for prefixes and/or suffixes if needed.
+Function FindInStrings:Int[](SA:String[], Keys:String[], KeyPrefixes:String[], KeySuffixes:String[]=[], Output:Int[]=[])
+	' Local variable(s):
+	
+	' Array length caches (Could be more optimal, but this will do):
+	Local KeyPrefixes_Length:= KeyPrefixes.Length()
+	Local KeySuffixes_Length:= KeySuffixes.Length()
+	
+	' See what we can do about the input-arrays:
+	If (KeyPrefixes_Length > 0) Then
+		' We have prefixes, so we need to send in the suffixes, and iterate through the prefixes:
+		For Local KP_I:= 0 Until KeyPrefixes_Length
+			' Get the data supplied from the suffix-loop.
+			Local Data:= FindInStrings_Suffixes(SA, Keys, KeyPrefixes[KP_I], KeySuffixes, Output)
+			
+			' If data was found, we can return it.
+			If (Data.Length() > 0) Then
+				' We're good, return the data supplied.
+				Return Data
+			Endif
+		Next
+	Elseif (KeySuffixes_Length > 0) Then
+		' We have suffixes, so we need to send in the prefixes, and iterate through the suffixes:
+		For Local KS_I:= 0 Until KeySuffixes_Length
+			' Get the data supplied from the prefix-loop.
+			Local Data:= FindInStrings_Prefixes(SA, Keys, KeyPrefixes, KeySuffixes[KS_I], Output)
+			
+			' If data was found, we can return it.
+			If (Data.Length() > 0) Then
+				' We're good, return the data supplied.
+				Return Data
+			Endif
+		Next
+	Else
+		' If nothing else, call the version without prefixes and suffixes.
+		Return FindInStrings(SA, Keys, Output)
+	Endif
+	
+	' If we get to this point, nothing could be found.
+	Return []
 End
 
 Function FindInStrings:Int[](SA:String[], Keys:String[], Output:Int[]=[])
@@ -464,6 +464,100 @@ Function FindString_Prefixes:Int(S:String, Keys:String[], KeyPrefixes:String[], 
 	Endif
 	
 	Return Position
+End
+
+Function SplitString:String[](S:String, Separator:String)
+	Return S.Split(Separator)
+End
+
+' This overload will generate an output-array for you.
+Function SplitString:String[](S:String, Separators:String[])
+	Return SplitString(S, Separators, New String[ProjectedNumberOfSeparations(S, Separators)])
+End
+
+' The 'Output' array must be at least the length specified by the
+' 'ProjectedNumberOfSeparations' command (Offset by the 'Output_Offset' argument).
+' The array returned by this command is the same as the 'Output' array.
+Function SplitString:String[](S:String, Separators:String[], Output:String[], Output_Offset:Int=0)
+	' Local variable(s):
+	Local OutputIndex:= Output_Offset
+	
+	For Local Position:= 0 Until S.Length()
+		Local FirstResult:= STRING_INVALID_LOCATION
+		Local SeparatorLength:Int = 0
+		
+		For Local SI:= 0 Until Separators.Length()
+			Local Separator:String = Separators[SI]
+			
+			If (Separator.Length() = 0) Then
+				Continue
+			Endif
+			
+			Local Result:= S.Find(Separator, Position)
+			
+			If (Result < FirstResult Or FirstResult = STRING_INVALID_LOCATION) Then
+				FirstResult = Result
+				SeparatorLength = Separator.Length()
+			Endif
+		Next
+		
+		Output[OutputIndex] = S[Position..FirstResult]
+		
+		' Check for errors with the input:
+		If (FirstResult = STRING_INVALID_LOCATION) Then
+			Exit
+		Endif
+		
+		Position = Max(FirstResult+SeparatorLength-1, 0)
+		
+		OutputIndex += 1
+	Next
+	
+	Return Output
+End
+
+' This command will output the number of entries an output-array would yield
+' from splitting the string in question, using the seperators specified.
+Function ProjectedNumberOfSeparations:Int(S:String, Separators:String[])
+	' Local variable(s):
+	Local Size:Int = 0
+	
+	For Local SI:= 0 Until Separators.Length()
+		Size += ProjectedNumberOfSeparations(S, Separators[SI])
+	Next
+	
+	' Return the projected number of entries.
+	Return Size
+End
+
+' This command will output the number of entries an output-array would yield
+' from splitting the 'S' argument using the 'Separator' argument.
+Function ProjectedNumberOfSeparations:Int(S:String, Separator:String)
+	' Local variable(s):
+	Local Size:Int = 0
+	Local Position:Int = 0
+	Local S_Length:= S.Length()
+	
+	Repeat
+		Local Result:= S.Find(Separator, Position)
+		
+		If (Result = -1) Then
+			Exit
+		Else
+			Position = Result + 1
+			
+			' Add to the projected size by one entry.
+			Size += 1
+			
+			' Check if we've made it to the end of the string.
+			If (Position = S_Length) Then
+				Exit
+			Endif
+		Endif
+	Forever
+	
+	' Return the calculated number of separations.
+	Return Size
 End
 
 Function StringStartsWith:Bool(S:String, Token:String)
