@@ -535,6 +535,11 @@ End
 ' This command will output the number of entries an output-array would yield
 ' from splitting the 'S' argument using the 'Separator' argument.
 Function ProjectedNumberOfSeparations:Int(S:String, Separator:String)
+	' Check for errors:
+	If (Separator.Length() = 0 Or S.Length() = 0) Then
+		Return 0
+	Endif
+	
 	' Local variable(s):
 	Local Size:Int = 0
 	Local Position:Int = 0
@@ -548,8 +553,9 @@ Function ProjectedNumberOfSeparations:Int(S:String, Separator:String)
 		Else
 			Position = Result+1
 			
-			' If there are no entries already, set the default (For a single entry).
+			' Check If there are no entries already:
 			If (Size = 0) Then
+				' Set the default number of entries.
 				Size = 2
 			Else
 				' Add to the projected size by one entry.
@@ -682,6 +688,14 @@ End
 
 Function InvalidStringSearch:Bool(Response:Int[])
 	Return (Response.Length() = 0 Or Response[STRING_SEARCH_ARRAY_POSITION] = STRING_INVALID_LOCATION Or Response[STRING_SEARCH_STR_POSITION] = STRING_INVALID_LOCATION)
+End
+
+Function ValidStringSearch:Bool(Response:Int)
+	Return (Response <> STRING_INVALID_LOCATION) ' Not InvalidStringSearch(Response)
+End
+
+Function ValidStringSearch:Bool(Response:Int[])
+	Return Not InvalidStringSearch(Response)
 End
 
 #Rem
