@@ -495,22 +495,24 @@ Function SplitString:String[](S:String, Separators:String[], Output:String[], Ou
 			
 			Local Result:= S.Find(Separator, Position)
 			
-			If (Result < FirstResult Or FirstResult = STRING_INVALID_LOCATION) Then
+			If (Result <> STRING_INVALID_LOCATION And Result < FirstResult Or FirstResult = STRING_INVALID_LOCATION) Then
 				FirstResult = Result
 				SeparatorLength = Separator.Length()
 			Endif
 		Next
 		
-		Output[OutputIndex] = S[Position..FirstResult]
-		
 		' Check for errors with the input:
 		If (FirstResult = STRING_INVALID_LOCATION) Then
+			Output[OutputIndex] = S[Position..]
+			
 			Exit
+		Else
+			Output[OutputIndex] = S[Position..FirstResult]
+			
+			Position = Max(FirstResult+SeparatorLength-1, 0)
+			
+			OutputIndex += 1
 		Endif
-		
-		Position = Max(FirstResult+SeparatorLength-1, 0)
-		
-		OutputIndex += 1
 	Next
 	
 	Return Output
@@ -544,10 +546,15 @@ Function ProjectedNumberOfSeparations:Int(S:String, Separator:String)
 		If (Result = -1) Then
 			Exit
 		Else
-			Position = Result + 1
+			Position = Result+1
 			
-			' Add to the projected size by one entry.
-			Size += 1
+			' If there are no entries already, set the default (For a single entry).
+			If (Size = 0) Then
+				Size = 2
+			Else
+				' Add to the projected size by one entry.
+				Size += 1
+			Endif
 			
 			' Check if we've made it to the end of the string.
 			If (Position = S_Length) Then
