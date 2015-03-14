@@ -55,7 +55,29 @@ Public
 	Import retrostrings
 #End
 
-' Constant variable(s):
+' Constant variable(s) (Public):
+
+#If Not RETROSTRINGS_AUTHENTIC
+	' These are mainly used for internal routines, such as hexadecimal conversion:
+	Const ASCII_NUMBERS_POSITION:Int = 48
+	
+	Const ASCII_CHARACTER_0:= ASCII_NUMBERS_POSITION
+	Const ASCII_CHARACTER_1:= ASCII_CHARACTER_0 + 1
+	Const ASCII_CHARACTER_2:= ASCII_CHARACTER_1 + 1
+	Const ASCII_CHARACTER_3:= ASCII_CHARACTER_2 + 1
+	Const ASCII_CHARACTER_4:= ASCII_CHARACTER_3 + 1
+	Const ASCII_CHARACTER_5:= ASCII_CHARACTER_4 + 1
+	Const ASCII_CHARACTER_6:= ASCII_CHARACTER_5 + 1
+	Const ASCII_CHARACTER_7:= ASCII_CHARACTER_6 + 1
+	Const ASCII_CHARACTER_8:= ASCII_CHARACTER_7 + 1
+	Const ASCII_CHARACTER_9:= ASCII_CHARACTER_8 + 1
+	
+	Const ASCII_CHARACTER_UPPERCASE_POSITION:= 65
+	Const ASCII_CHARACTER_LOWERCASE_POSITION:= 97
+	
+	' The alphabet is currently not available / available publicly.
+#End
+
 Const STRING_INVALID_LOCATION:Int		= -1
 
 Const STRING_SEARCH_OUTPUT_SIZE:Int		= 2
@@ -94,6 +116,17 @@ Const DotBackSlash:String = ".\"
 Const ColonBackSlash:String = ":\"
 Const SingleQuote:String = "'"
 
+' Constant variable(s) (Private):
+Private
+
+#If Not RETROSTRINGS_AUTHENTIC
+	' This represents the number of characters
+	' representing numbers in the ascii-table.
+	Const ASCII_NUMBER_COUNT:Int = 10
+#End
+
+Public
+
 ' Global variable(s):
 ' Nothing so far.
 
@@ -110,6 +143,42 @@ Function InQuotes:String(Input:String, QChar:Int)
 	
 	' Return the processed string.
 	Return Q + Input + Q
+End
+
+Function BitFieldAsString:String(BitField:Int)
+	Return String.FromChars(BitFieldToChars(BitField, New Int[32]))
+End
+
+Function BitFieldAsString:String(BitField:Int, Character:String, Character_Offset:Int=0)
+	Return BitFieldAsString(BitField, Character[Character_Offset])
+End
+
+Function BitFieldAsString:String(BitField:Int, SeparatorChar:Int)
+	Return String.FromChars(BitFieldToChars(BitField, New Int[63], SeparatorChar))
+End
+
+Function BitFieldToChars:Int[](BitField:Int, Chars:Int[])
+	For Local I:= 31 To 0 Step -1
+		Chars[I] = (BitField & 1) + ASCII_NUMBERS_POSITION
+		
+		BitField Shr= 1
+	Next
+	
+	Return Chars
+End
+
+Function BitFieldToChars:Int[](BitField:Int, Chars:Int[], SeparatorChar:Int)
+	For Local I:= 63 To 0 Step -2
+		Chars[I-1] = (BitField & 1) + ASCII_NUMBERS_POSITION
+		
+		If (I < 63) Then
+			Chars[I] = SeparatorChar
+		Endif
+		
+		BitField Shr= 1
+	Next
+	
+	Return Chars
 End
 
 #Rem
