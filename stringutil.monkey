@@ -57,26 +57,28 @@ Public
 
 ' Constant variable(s) (Public):
 
-#If Not RETROSTRINGS_AUTHENTIC
-	' These are mainly used for internal routines, such as hexadecimal conversion:
-	Const ASCII_NUMBERS_POSITION:Int = 48
-	
-	Const ASCII_CHARACTER_0:= ASCII_NUMBERS_POSITION
-	Const ASCII_CHARACTER_1:= ASCII_CHARACTER_0 + 1
-	Const ASCII_CHARACTER_2:= ASCII_CHARACTER_1 + 1
-	Const ASCII_CHARACTER_3:= ASCII_CHARACTER_2 + 1
-	Const ASCII_CHARACTER_4:= ASCII_CHARACTER_3 + 1
-	Const ASCII_CHARACTER_5:= ASCII_CHARACTER_4 + 1
-	Const ASCII_CHARACTER_6:= ASCII_CHARACTER_5 + 1
-	Const ASCII_CHARACTER_7:= ASCII_CHARACTER_6 + 1
-	Const ASCII_CHARACTER_8:= ASCII_CHARACTER_7 + 1
-	Const ASCII_CHARACTER_9:= ASCII_CHARACTER_8 + 1
-	
-	Const ASCII_CHARACTER_UPPERCASE_POSITION:= 65
-	Const ASCII_CHARACTER_LOWERCASE_POSITION:= 97
-	
-	' The alphabet is currently not available / available publicly.
-#End
+' This represents the number of characters
+' representing numbers in the ascii-table.
+Const ASCII_NUMBER_COUNT:Int = 10
+
+' These are mainly used for internal routines, such as hexadecimal conversion:
+Const ASCII_NUMBERS_POSITION:Int = 48
+
+Const ASCII_CHARACTER_0:= ASCII_NUMBERS_POSITION
+Const ASCII_CHARACTER_1:= ASCII_CHARACTER_0 + 1
+Const ASCII_CHARACTER_2:= ASCII_CHARACTER_1 + 1
+Const ASCII_CHARACTER_3:= ASCII_CHARACTER_2 + 1
+Const ASCII_CHARACTER_4:= ASCII_CHARACTER_3 + 1
+Const ASCII_CHARACTER_5:= ASCII_CHARACTER_4 + 1
+Const ASCII_CHARACTER_6:= ASCII_CHARACTER_5 + 1
+Const ASCII_CHARACTER_7:= ASCII_CHARACTER_6 + 1
+Const ASCII_CHARACTER_8:= ASCII_CHARACTER_7 + 1
+Const ASCII_CHARACTER_9:= ASCII_CHARACTER_8 + 1
+
+Const ASCII_CHARACTER_UPPERCASE_POSITION:= 65
+Const ASCII_CHARACTER_LOWERCASE_POSITION:= 97
+
+' The alphabet is currently not available / available publicly.
 
 Const STRING_INVALID_LOCATION:Int		= -1
 
@@ -115,17 +117,6 @@ Const BackSlash:String = "\"
 Const DotBackSlash:String = ".\"
 Const ColonBackSlash:String = ":\"
 Const SingleQuote:String = "'"
-
-' Constant variable(s) (Private):
-Private
-
-#If Not RETROSTRINGS_AUTHENTIC
-	' This represents the number of characters
-	' representing numbers in the ascii-table.
-	Const ASCII_NUMBER_COUNT:Int = 10
-#End
-
-Public
 
 ' Global variable(s):
 ' Nothing so far.
