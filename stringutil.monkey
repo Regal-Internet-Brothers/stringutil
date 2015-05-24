@@ -348,6 +348,18 @@ Function FindInString:Int(S:String, Keys:String[], ExitOnMatch:Bool=False)
 	Return Position
 End
 
+Function FindInString:Int(S:String, Key:String, Start:Int=0)
+	Return S.Find(Key, Start)
+End
+
+Function FindInString:Int(S:String, Key:String, Prefix:String, Start:Int=0)
+	Return FindInString(S, Prefix+Key, Start)
+End
+
+Function FindInString:Int(S:String, Key:String, Prefix:String, Suffix:String, Start:Int=0)
+	Return FindInString(S, Key + Suffix, Prefix, Start)
+End
+
 ' This command can take empty arrays for prefixes and/or suffixes if needed.
 Function FindInStrings:Int[](SA:String[], Keys:String[], KeyPrefixes:String[], KeySuffixes:String[]=[], Output:Int[]=[])
 	' Local variable(s):
