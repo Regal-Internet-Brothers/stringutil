@@ -360,6 +360,38 @@ Function FindInString:Int(S:String, Key:String, Prefix:String, Suffix:String, St
 	Return FindInString(S, Key + Suffix, Prefix, Start)
 End
 
+Function FindInString:Int(S:String, Key:String, KeyPrefixes:String[], KeySuffixes:String[]=[], ExitOnMatch:Bool=False, Start:Int=0)
+	' Local variable(s):
+	
+	' Array length caches (Could be more optimal, but this will do):
+	Local KeyPrefixes_Length:= KeyPrefixes.Length()
+	Local KeySuffixes_Length:= KeySuffixes.Length()
+	
+	' See what we can do about the input-arrays:
+	If (KeyPrefixes_Length > 0) Then
+		' We have prefixes, so we need to send in the suffixes, and iterate through the prefixes:
+		For Local KP_I:= 0 Until KeyPrefixes_Length
+			Local Result:= FindInString_Suffixes(S, Key, KeyPrefixes[KP_I], KeySuffixes, ExitOnMatch, Start)
+			
+			If (Result <> STRING_INVALID_LOCATION) Then
+				Return Result
+			Endif
+		Next
+	Elseif (KeySuffixes_Length > 0) Then
+		' We have suffixes, so we need to send in the prefixes, and iterate through the suffixes:
+		For Local KS_I:= 0 Until KeySuffixes_Length
+			Local Result:= FindInString_Prefixes(S, Key, KeyPrefixes, KeySuffixes[KS_I], ExitOnMatch, Start)
+			
+			If (Result <> STRING_INVALID_LOCATION) Then
+				Return Result
+			Endif
+		Next
+	Endif
+	
+	' If nothing else, call the version without prefixes and suffixes.
+	Return FindInString(S, Key, Start)
+End
+
 ' This command can take empty arrays for prefixes and/or suffixes if needed.
 Function FindInStrings:Int[](SA:String[], Keys:String[], KeyPrefixes:String[], KeySuffixes:String[]=[], Output:Int[]=[])
 	' Local variable(s):
@@ -484,6 +516,58 @@ Function FindInStrings_Suffixes:Int[](SA:String[], Keys:String[], KeyPrefix:Stri
 	
 	' Return an empty array.
 	Return []
+End
+
+Function FindInString_Prefixes:Int(S:String, Key:String, KeyPrefixes:String[], KeySuffix:String, ExitOnMatch:Bool=False, Start:Int=0)
+	' Local variable(s):
+	Local KeyPrefixes_Length:= KeyPrefixes.Length()
+	
+	' This will represent the position we find the key at.
+	Local Position:= STRING_INVALID_LOCATION
+	
+	If (KeyPrefixes_Length > 0) Then
+		For Local KP_I:= 0 Until KeyPrefixes_Length
+			Local P:= FindInString(S, Key, KeyPrefixes[KP_I], KeySuffix, Start)
+			
+			If (P > Position) Then
+				If (ExitOnMatch) Then
+					Return P
+				Endif
+				
+				Position = P
+			Endif
+		Next
+	Else
+		Return FindInString(S, Key, "", KeySuffix, Start)
+	Endif
+	
+	Return Position
+End
+
+Function FindInString_Suffixes:Int(S:String, Key:String, KeyPrefix:String, KeySuffixes:String[], ExitOnMatch:Bool=False, Start:Int=0)
+	' Local variable(s):
+	Local KeySuffixes_Length:= KeySuffixes.Length()
+	
+	' This will represent the position we find the key at.
+	Local Position:= STRING_INVALID_LOCATION
+	
+	If (KeySuffixes_Length > 0) Then
+		For Local KS_I:= 0 Until KeySuffixes_Length
+			Local P:= FindInString(S, Key, KeyPrefix, KeySuffixes[KS_I], Start)
+			
+			If (P > Position) Then
+				If (ExitOnMatch) Then
+					Return P
+				Endif
+				
+				Position = P
+			Endif
+		Next
+	Else
+		Return FindInString(S, Key, KeyPrefix, Start)
+	Endif
+	
+	Return Position
 End
 
 Function FindString_Suffixes:Int(S:String, Keys:String[], KeyPrefix:String, KeySuffixes:String[], ExitOnMatch:Bool=False)
