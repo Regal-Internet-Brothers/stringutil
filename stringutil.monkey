@@ -61,6 +61,8 @@ Public
 ' representing numbers in the ascii-table.
 Const ASCII_NUMBER_COUNT:Int = 10
 
+Const ASCII_LETTER_COUNT:Int = 26
+
 ' These are mainly used for internal routines, such as hexadecimal conversion:
 Const ASCII_NUMBERS_POSITION:Int = 48
 
@@ -77,6 +79,13 @@ Const ASCII_CHARACTER_9:= ASCII_CHARACTER_8 + 1
 
 Const ASCII_CHARACTER_UPPERCASE_POSITION:= 65
 Const ASCII_CHARACTER_LOWERCASE_POSITION:= 97
+
+' The distance between upper and lower case characters.
+Const ASCII_CASE_DELTA:= (ASCII_CHARACTER_LOWERCASE_POSITION-ASCII_CHARACTER_UPPERCASE_POSITION) ' Abs(...)
+
+' The final characters in the ASCII alphabet.
+Const ASCII_CHARACTERS_UPPERCASE_END:= ASCII_CHARACTER_UPPERCASE_POSITION+ASCII_LETTER_COUNT
+Const ASCII_CHARACTERS_LOWERCASE_END:= ASCII_CHARACTER_LOWERCASE_POSITION+ASCII_LETTER_COUNT
 
 ' The alphabet is currently not available / available publicly.
 
@@ -205,6 +214,48 @@ Function BoolToString:String(In:Bool)
 	Endif
 	
 	Return "False"
+End
+
+' This implementation returns 'True' upon receiving "unparsable" data.
+' The only exception being blank strings, they are always considered 'False'.
+Function StringToBool:Bool(In:String)
+	' Constant variable(s):
+	Const ASCII_LOWER_F:= ASCII_CHARACTER_LOWERCASE_POSITION+5
+	Const ASCII_LOWER_N:= ASCII_CHARACTER_LOWERCASE_POSITION+13
+	
+	' Check for errors:
+	If (In.Length() = 0) Then
+		Return False
+	Endif
+	
+	' Local variable(s):
+	Local In_Lower:= ToLower(In[0]) ' (ToLower(In)[0])
+	
+	Return (In_Lower <> ASCII_LOWER_N And In_Lower <> ASCII_LOWER_F And In_Lower <> ASCII_CHARACTER_0)
+End
+
+Function ToLower:String(S:String)
+	Return S.ToLower()
+End
+
+Function ToUpper:String(S:String)
+	Return S.ToUpper()
+End
+
+Function ToLower:Int(CharacterCode:Int)
+	If (CharacterCode >= ASCII_CHARACTER_UPPERCASE_POSITION And CharacterCode <= ASCII_CHARACTERS_UPPERCASE_END) Then
+		Return (CharacterCode + ASCII_CASE_DELTA)
+	Endif
+	
+	Return CharacterCode
+End
+
+Function ToUpper:Int(CharacterCode:Int)
+	If (CharacterCode >= ASCII_CHARACTER_LOWERCASE_POSITION And CharacterCode <= ASCII_CHARACTERS_LOWERCASE_END) Then
+		Return (CharacterCode - ASCII_CASE_DELTA)
+	Endif
+	
+	Return CharacterCode
 End
 
 ' If 'STRINGUTIL_SAFE' is disabled, and the 'Precision' argument
