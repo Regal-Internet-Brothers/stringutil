@@ -853,7 +853,7 @@ Function StringEndsWith:Bool(S:String, Tokens:String[])
 		Next
 	#Else
 		For Local Index:= 0 Until Tokens.Length()
-			If (Token.Length() = 0) Then
+			If (Tokens[Index].Length() = 0) Then
 				Continue
 			Endif
 			
