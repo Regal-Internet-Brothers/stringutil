@@ -3,7 +3,7 @@ Strict
 Public
 
 ' Imports:
-Import stringutil
+Import regal.stringutil
 
 ' Functions:
 Function Main:Int()

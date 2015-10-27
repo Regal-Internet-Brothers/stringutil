@@ -52,7 +52,7 @@ Public
 
 ' Imports:
 #If STRINGUTIL_IMPORT_RETROSTRINGS
-	Import retrostrings
+	Import regal.retrostrings
 #End
 
 ' Constant variable(s) (Public):
