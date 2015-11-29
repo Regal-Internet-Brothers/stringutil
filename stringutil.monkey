@@ -87,6 +87,9 @@ Const ASCII_CASE_DELTA:= (ASCII_CHARACTER_LOWERCASE_POSITION-ASCII_CHARACTER_UPP
 Const ASCII_CHARACTERS_UPPERCASE_END:= ASCII_CHARACTER_UPPERCASE_POSITION+ASCII_LETTER_COUNT
 Const ASCII_CHARACTERS_LOWERCASE_END:= ASCII_CHARACTER_LOWERCASE_POSITION+ASCII_LETTER_COUNT
 
+' Other ASCII characters:
+Const ASCII_CHARACTER_SPACE:= 32
+
 ' The alphabet is currently not available / available publicly.
 
 Const STRING_INVALID_LOCATION:Int		= -1
@@ -305,6 +308,36 @@ Function CleanString:String(Input:String, ReplaceStrs:String[]=["~n", "~r", "~t"
 	Next
 	
 	' Return the newly processed input-string and treat it as an output.
+	Return Input
+End
+
+Function SmartClip:String(Input:String, Symbol:Int)
+	Return SmartClip(Input, Symbol, Input.Length)
+End
+
+Function SmartClip:String(Input:String, Symbol:Int, Length:Int)
+	' Local variable(s):
+	Local FinalChar:= (Length - 1)
+	
+	Local XClip:Int
+	Local YClip:Int
+	
+	If (Input[0] = ASCII_SPACE) Then
+		XClip = 1
+	Else
+		XClip = 0
+	Endif
+	
+	If (Input[FinalChar] = ASCII_SPACE) Then
+		YClip = FinalChar
+	Else
+		XClip = Length
+	Endif
+	
+	If (XClip <> 0 Or YClip <> 0) Then
+		Return Input[XClip..YCLip]
+	Endif
+	
 	Return Input
 End
 
