@@ -331,7 +331,7 @@ Function SmartClip:String(Input:String, Symbol:Int, Length:Int)
 	If (Input[FinalChar] = Symbol) Then
 		YClip = FinalChar
 	Else
-		XClip = Length
+		YClip = Length
 	Endif
 	
 	If (XClip <> 0 Or YClip <> 0) Then
