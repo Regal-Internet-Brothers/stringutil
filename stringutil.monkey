@@ -322,20 +322,20 @@ Function SmartClip:String(Input:String, Symbol:Int, Length:Int)
 	Local XClip:Int
 	Local YClip:Int
 	
-	If (Input[0] = ASCII_SPACE) Then
+	If (Input[0] = Symbol) Then
 		XClip = 1
 	Else
 		XClip = 0
 	Endif
 	
-	If (Input[FinalChar] = ASCII_SPACE) Then
+	If (Input[FinalChar] = Symbol) Then
 		YClip = FinalChar
 	Else
 		XClip = Length
 	Endif
 	
 	If (XClip <> 0 Or YClip <> 0) Then
-		Return Input[XClip..YCLip]
+		Return Input[XClip..YClip]
 	Endif
 	
 	Return Input
